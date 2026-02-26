@@ -1,0 +1,468 @@
+﻿@* ﻿@{
+ViewData["Title"] = "Genel Durum Kartları";
+}
+
+<style>
+    .cards-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 25px;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .circle-card {
+        flex: 1 1 220px;
+        max-width: 250px;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+        text-align: center;
+        padding: 25px 15px;
+        transition: transform .2s ease-in-out;
+    }
+
+        .circle-card:hover {
+            transform: translateY(-5px);
+        }
+
+    .progress-circle {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 15px auto;
+    }
+
+        .progress-circle svg {
+            transform: rotate(-90deg);
+            width: 100px;
+            height: 100px;
+        }
+
+        .progress-circle circle {
+            fill: none;
+            stroke-width: 10;
+            stroke-linecap: round;
+        }
+
+        .progress-circle .bg {
+            stroke: #e6e6e6;
+        }
+
+        .progress-circle .progress {
+            stroke-dasharray: 283;
+            stroke-dashoffset: 283;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+    .circle-value {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 22px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .card-title {
+        font-weight: 600;
+        font-size: 16px;
+        margin-top: 8px;
+        color: #444;
+    }
+
+    .card-sub {
+        font-size: 14px;
+        margin-top: 4px;
+    }
+
+    .positive {
+        color: green;
+    }
+
+    .negative {
+        color: red;
+    }
+</style>
+
+<div class="cards-container">
+    <div class="circle-card">
+        <div class="progress-circle" data-value="78" data-color="#00BCD4">
+            <svg>
+                <circle class="bg" cx="50" cy="50" r="45"></circle>
+                <circle class="progress" cx="50" cy="50" r="45"></circle>
+            </svg>
+            <div class="circle-value">78%</div>
+        </div>
+        <div class="card-title">Sipariş Tamamlanma</div>
+        <div class="card-sub positive">+12% Artış ⬆</div>
+    </div>
+
+    <div class="circle-card">
+        <div class="progress-circle" data-value="22" data-color="#FF7043">
+            <svg>
+                <circle class="bg" cx="50" cy="50" r="45"></circle>
+                <circle class="progress" cx="50" cy="50" r="45"></circle>
+            </svg>
+            <div class="circle-value">22%</div>
+        </div>
+        <div class="card-title">İade Oranı</div>
+        <div class="card-sub negative">-5% Azalış ⬇</div>
+    </div>
+
+    <div class="circle-card">
+        <div class="progress-circle" data-value="65" data-color="#66BB6A">
+            <svg>
+                <circle class="bg" cx="50" cy="50" r="45"></circle>
+                <circle class="progress" cx="50" cy="50" r="45"></circle>
+            </svg>
+            <div class="circle-value">65%</div>
+        </div>
+        <div class="card-title">Sepet Ortalama Değeri</div>
+        <div class="card-sub positive">+8% Artış ⬆</div>
+    </div>
+
+    <div class="circle-card">
+        <div class="progress-circle" data-value="90" data-color="#2196F3">
+            <svg>
+                <circle class="bg" cx="50" cy="50" r="45"></circle>
+                <circle class="progress" cx="50" cy="50" r="45"></circle>
+            </svg>
+            <div class="circle-value">90%</div>
+        </div>
+        <div class="card-title">Gelir Artış Oranı</div>
+        <div class="card-sub positive">+20% Artış ⬆</div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.progress-circle').forEach(el => {
+        const value = el.getAttribute('data-value');
+        const color = el.getAttribute('data-color');
+        const circle = el.querySelector('.progress');
+        const radius = 45;
+        const circumference = 2 * Math.PI * radius;
+        const offset = circumference - (value / 100) * circumference;
+
+        circle.style.stroke = color;
+        circle.style.strokeDashoffset = offset;
+    });
+</script>
+ 
+
+
+
+  --------------------------------
+ 
+@model List<CountryReportDto>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<style>
+   .dashboard-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .map-container {
+        flex: 2;
+        min-width: 600px;
+        height: 500px;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+
+    .table-container {
+        flex: 1;
+        min-width: 400px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        height: 500px; /* Harita ile aynı yükseklik */
+    }
+
+        .table-container h3 {
+            margin: 0 0 10px 0;
+        }
+
+    /* Scrollable tablo alanı */
+    .table-wrapper {
+        flex: 1;
+        overflow-y: auto;
+        border-top: 1px solid #f0f0f0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+        .table-wrapper table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table-wrapper th, .table-wrapper td {
+            padding: 10px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .table-wrapper th {
+            background: #f5f5f5;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+    .positive {
+        color: green;
+        font-weight: bold;
+    }
+
+    .negative {
+        color: red;
+        font-weight: bold;
+    }
+
+    /* Scrollbar tasarımı */
+    .table-wrapper::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background-color: #ccc;
+        border-radius: 4px;
+    }
+</style>
+
+<div class="dashboard-container">
+    <!-- Harita -->
+    <div id="map" class="map-container"></div>
+
+    <!-- Tablo -->
+    <div class="table-container">
+        <h3>Ülke İstatistikleri</h3>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ülke</th>
+                        <th>2025</th>
+                        <th>2026</th>
+                        <th>Değişim</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Country</td>
+                            <td>@item.Total2025</td>
+                            <td>@item.Total2026</td>
+                            <td>
+                                @if (item.ChangeRate >= 0)
+                                {
+                                    <span class="positive">+@item.ChangeRate % ⬆</span>
+                                }
+                                else
+                                {
+                                    <span class="negative">@item.ChangeRate % ⬇</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    var data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+
+    var map = L.map('map').setView([45, 10], 4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+    data.forEach(x => {
+        if (x.Latitude && x.Longitude) {
+            var popupContent = `
+                <b>${x.Country}</b><br>
+                2025: ${x.Total2025}<br>
+                2026: ${x.Total2026}<br>
+                Değişim: ${x.ChangeRate} %
+            `;
+            var marker = L.circleMarker([x.Latitude, x.Longitude], {
+                radius: 10,
+                fillColor: x.ChangeRate >= 0 ? "green" : "red",
+                color: "#fff",
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(map);
+            marker.bindPopup(popupContent);
+        }
+    });
+</script>
+ ----------------------  @* *@
+
+
+
+
+@using System.Linq 
+@model List<BigDataOrdersDashboard.Models.CountryReportDto>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<style>
+    .dashboard-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .map-container {
+        flex: 2;
+        min-width: 600px;
+        height: 500px;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+
+    .table-container {
+        flex: 1;
+        min-width: 400px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        height: 500px; /* Harita ile aynı yükseklik */
+    }
+
+        .table-container h3 {
+            margin: 0 0 10px 0;
+        }
+
+        /* Scrollable tablo alanı */
+        .table-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            border-top: 1px solid #f0f0f0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+            .table-wrapper table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .table-wrapper th, .table-wrapper td {
+                padding: 10px;
+                text-align: left;
+                font-size: 14px;
+            }
+
+            .table-wrapper th {
+                background: #f5f5f5;
+                position: sticky;
+                top: 0;
+                z-index: 1;
+            }
+
+    .positive {
+        color: green;
+        font-weight: bold;
+    }
+
+    .negative {
+        color: red;
+        font-weight: bold;
+    }
+
+    /* Scrollbar tasarımı */
+    .table-wrapper::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background-color: #ccc;
+        border-radius: 4px;
+    }
+</style>
+
+<div class="dashboard-container">
+    <!-- Harita -->
+    <div id="map" class="map-container"></div>
+
+    <!-- Tablo -->
+    <div class="table-container">
+        <h3>Ülke İstatistikleri</h3>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ülke</th>
+                        <th>2025</th>
+                        <th>2026</th>
+                        <th>Değişim</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Country</td>
+                            <td>@item.Total2025</td>
+                            <td>@item.Total2026</td>
+                            <td>
+                                @if (item.ChangeRate >= 0)
+                                {
+                                    <span class="positive">+@item.ChangeRate % ⬆</span>
+                                }
+                                else
+                                {
+                                    <span class="negative">@item.ChangeRate % ⬇</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    var data = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+
+    var map = L.map('map').setView([45, 10], 4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+    data.forEach(x => {
+        if (x.Latitude && x.Longitude) {
+            var popupContent = `
+                <b>${x.Country}</b><br>
+                2025: ${x.Total2025}<br>
+                2026: ${x.Total2026}<br>
+                Değişim: ${x.ChangeRate} %
+            `;
+            var marker = L.circleMarker([x.Latitude, x.Longitude], {
+                radius: 10,
+                fillColor: x.ChangeRate >= 0 ? "green" : "red",
+                color: "#fff",
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(map);
+            marker.bindPopup(popupContent);
+        }
+    });
+</script>
+

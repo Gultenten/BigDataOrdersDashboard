@@ -1,0 +1,103 @@
+﻿@model List<ResultLoyalthScoreMLDto>
+
+
+
+@{
+    ViewData["Title"] = "ItalyLoyalthScoreWithML";
+    Layout = "~/Views/AdminLayout/Index.cshtml";
+    int count = 0;
+}
+
+<section class="content">
+
+    <div class="block-header">
+        <div class="row">
+            <div class="col-lg-7 col-md-6 col-sm-12">
+                <h2>
+                    ﻿
+                    <img src="https://flagcdn.com/w20/it.png"
+                         title="Italy"
+                         alt="Italya Bayrağı"
+                         style="width:28px; height:auto; vertical-align:middle; margin-right:8px;">
+                    İtalya Müşteri Sadakat (Loyalty) Skoru Tablosu ML.Net
+                    <small class="text-muted">
+                        Bu tablo; son alışveriş tarih, sipariş sayısı ve toplam harcama kriterlerine göre makine öğrenmesi ile
+                        hesaplanmıştır.
+                    </small>
+                </h2>
+            </div>
+            <div class="col-lg-5 col-md-6 col-sm-12">
+                <ul class="breadcrumb float-md-right">
+                    <li class="breadcrumb-item"><a href="index.html"><i class="zmdi zmdi-home"></i> Tahminlemeler</a></li>
+                    <li class="breadcrumb-item"><a href="javascript:void(0);">Sipariş Tahminlemeleri</a></li>
+                    <li class="breadcrumb-item active">Dashboard</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row clearfix">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="body">
+
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Müşteri Adı</th>
+                                    <th>Son Sipariş Günü</th>
+                                    <th>Sipariş Sayısı</th>
+                                    <th>Toplam Harcama (€)</th>
+                                    <th>Mevcut Sadakat Skoru</th>
+                                    <th>ML Tahmin Skoru</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+
+                                @foreach (var item in Model)
+                                {
+                                    count++;
+
+                                    <tr>
+
+                                        <th>@count</th>
+                                        <td>@item.CustomerName</td>
+                                        <td>@item.Recency</td>
+                                        <td>@item.Frequency</td>
+                                        <td>@item.Monetary.ToString("N2") €</td>
+                          <td class="@GetLoyaltyColor(item.ActualLoyalthScore)">@item.ActualLoyalthScore</td>
+                          <td class="@GetLoyaltyColor(item.PredictedLoyalthScore)">@item.PredictedLoyalthScore</td>
+
+                                    
+                                     
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        @functions  {
+                            public string GetLoyaltyColor(double score)
+                            {
+                                if (score >= 80)
+                                    return "text-success fw-bold";  //Yüksek
+
+                              else  if (score >= 50)
+                                    return "text-warning fw-bold";  //orta
+
+                               else 
+                                    return "text-danger fw-bold";  //düşük
+                             
+                            }
+
+                        }
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+

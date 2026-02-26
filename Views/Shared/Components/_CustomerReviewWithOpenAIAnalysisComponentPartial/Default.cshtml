@@ -1,0 +1,41 @@
+﻿@using Microsoft.AspNetCore.Mvc
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+<div class="row clearfix">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="header"><h2>👤 Müşteri Yorum Profili</h2></div>
+            <div class="body">@Html.Raw(ViewBag.AnalysisSection1 as string)</div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="header"><h2>📊 Duygu & Ton Analizi</h2></div>
+            <div class="body">@Html.Raw(ViewBag.AnalysisSection2 as string)</div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="header"><h2>🧠 Karakter Analizi</h2></div>
+            <div class="body">@Html.Raw(ViewBag.AnalysisSection3 as string)</div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="header"><h2>🔥 Şikayet & Övgü Temaları</h2></div>
+            <div class="body">@Html.Raw(ViewBag.AnalysisSection4 as string)</div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="header"><h2>📈 Davranış Trendi</h2></div>
+            <div class="body">@Html.Raw(ViewBag.AnalysisSection5 as string)</div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="header"><h2>🚀 Aksiyon & İletişim Stratejisi</h2></div>
+            <div class="body">@Html.Raw(ViewBag.AnalysisSection6 as string)</div>
+        </div>
+    </div>
+</div>
